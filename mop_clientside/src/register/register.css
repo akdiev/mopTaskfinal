@@ -1,0 +1,24 @@
+.field {
+  width: 70% !important;
+  display: block !important;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  color: black !important;
+}
+.content_custom {
+  text-align: center !important;
+  display: block !important;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  margin-top: 10% !important;
+}
+.form-label {
+  color: white !important;
+  text-shadow: 2px 2px 4px #000000 !important;
+  font-size: 25px !important;
+}
+.reg-box {
+  margin-top: 50px;
+}
