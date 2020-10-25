@@ -26,7 +26,7 @@ const list = async (req, res, next) => {
     console.log('req.query', req.query);
     const questions = await Question.find().populate('answers').populate('postedBy');
     if (req.query.sortBy === 'upvotes') {
-      const sortedQuestions = await Question.find().sort({ upvotes: -1 });
+      const sortedQuestions = await Question.find().sort({ upvotes: -1 }).populate('answers').populate('postedBy');
       res.json({ sortedQuestions });
     } else {
       res.json({ questions });

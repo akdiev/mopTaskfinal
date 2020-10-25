@@ -3,7 +3,6 @@ import axios from 'axios';
 import Card from 'react-bootstrap/Card'
 import './questions.css';
 import ListGroup from 'react-bootstrap/listgroup';
-import Button from 'react-bootstrap/Button';
 
 export default class Questions extends Component {
 
@@ -21,15 +20,15 @@ export default class Questions extends Component {
                 postedBy: {},
                 answers: [{}],
                 _id: '',
-                randomInt: Math.random(),
-                randomInt2: Math.random(),
-                randomInt3: Math.random(),
         }],
             api: "http://localhost:3001/api/questions"
 
         };
         this.textFilling = this.textFilling.bind(this);
         this.submitAnswer = this.submitAnswer.bind(this);
+        this.editAnswer = this.editAnswer.bind(this);
+        this.deleteAnswer =this.deleteAnswer.bind(this);
+
     }
 async componentDidMount() {
     try{
@@ -44,17 +43,32 @@ textFilling(event) {
     console.log(event.target.id);
     this.setState({body: event.target.value, onQuestion: event.target.id});
 }
+editAnswer(event) {
+
+}
+deleteAnswer() {
+
+}
 async submitAnswer () {
     if(this.state.author) {
         const response = await axios.post('http://localhost:3001/api/answers/', {author: this.state.author, onQuestion: this.state.onQuestion, body: this.state.body})
         if(response.data) {
-            this.setState()
-        }
-    } else {
-        this.setState({postingError: true})
+            const newAnswer = response.data;
+         
+            const newQuestionsObject = this.state.questions.map(question => {
+                const newAnswersObject = [...question.answers];
+         
+                if(question._id === this.state.onQuestion) {
+                    newAnswersObject.push(newAnswer)
+                }
+         
+                return {...question, answers: newAnswersObject}
+            })
+            console.log(newQuestionsObject);
+            this.setState({questions: newQuestionsObject});
     }
-
 }
+}   
 render() {
     const {loaded, body, postingError} = this.state
     if(!loaded) {
@@ -67,7 +81,10 @@ render() {
   <Card.Subtitle className="mb-2 text-muted" key={question._id + "4"}>Question:</Card.Subtitle>
   <Card.Text key={question._id + "3"}>{question.body}</Card.Text>
  </Card.Body>
- {question.answers.map((answer) => (<ListGroup.Item>{answer.body}</ListGroup.Item>))}
+ {question.answers.map((answer) => (
+ <ListGroup.Item>{answer.body} {answer.author === this.state.author && <div id="wrapper"><button type="button" class="btn btn-warning btn-sm" onClick={this.editAnswer}>Edit</button><button type="button" class="btn btn-danger btn-sm" onClick={this.deleteAnswer}>delete</button></div>}
+ 
+ </ListGroup.Item>))}
 
  <div className="input-group mb-3">
   <input type="text" className="form-control" id={question._id} placeholder="Post answer" aria-describedby="basic-addon2" onChange={this.textFilling} />
@@ -79,9 +96,7 @@ render() {
 </div>
 
 ))}
-  {/* <img src="../../Thumb-up-icon.png" className="img-fluid" alt=""></img> */}
 
   </div>)
 }
 }
-    
