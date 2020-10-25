@@ -3,103 +3,183 @@ import loginImg from "../../login-icon.png";
 import axios from 'axios';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import {BrowserRouter as Router, Link, Switch, Route, Redirect } from 'react-router-dom';
 import './login.css';
 import Alert from 'react-bootstrap/Alert'
+import { validateFields } from '../../validation';
+import classnames from 'classnames';
+import { useHistory } from "react-router-dom";
+import {Redirect} from 'react-router-dom';
 
 
-class Login extends Component {
+export default class Login extends Component {
 
   constructor(props) {
     super(props)
     this.state = {
-      email: '',
-      password: '',
       error: Boolean,
       api:"http://localhost:3001/api/users/",
       userToken: '',
       route: '',
-      loginError: undefined
+      user: {},
+      loginError: false,
+      email: {
+        value: '',
+        validateOnChange: false,
+        error: ''
+      },
+      password: {
+        value: '',
+        validateOnChange: false,
+        error: ''
+      },
+      submitCalled: false,
+      allFieldsValidated: false,
+      redirect: false
     };
-    this.emailChange = this.emailChange.bind(this);
-    this.passwordChange = this.passwordChange.bind(this);
-    this.submit = this.submit.bind(this);
-    
-    
-    
+
   }
 
-  emailChange(event) {
-    this.setState({email: event.target.value});
-  }
-  passwordChange(event) {
-    this.setState({password: event.target.value});
-  }
-  async submit() {
-    console.log(this.state);
-    try{
-      const response = await axios.post(this.state.api + "login", {email: this.state.email, password: this.state.password})
-      this.setState({userToken: response.data});
-      const users = await axios.get(this.state.api);
-      const user = users.data.users.find(x => x.email === this.state.email);
-      localStorage.setItem('userToken', this.state.userToken);
-      localStorage.setItem('userId', user._id);
-      this.setState({error: false});
-      if(this.state.userToken) {
-        this.setState({route: '/home'});
-      } else {
-        this.setState({route: '/login', loginError: true})
-        console.log(this.state.route);
-
+  handleChange(validationFunc, evt) {
+    const field = evt.target.name;
+    const fieldVal = evt.target.value;
+    this.setState(state => ({
+      [field]: {
+        ...state[field],
+        value: fieldVal,
+        error: state[field]['validateOnChange'] ? validationFunc(fieldVal) : ''
       }
+    }));
+  }
+
+  handleBlur(validationFunc, evt) {
+    
+    const field = evt.target.name;
+    if (
+      this.state[field]['validateOnChange'] === false &&
+      this.state.submitCalled === false
+    ) {
+      this.setState(state => ({
+        [field]: {
+          ...state[field],
+          validateOnChange: true,
+          error: validationFunc(state[field].value)
+        }
+      }));
+    }
+    return;
+  }
+
+  async handleSubmit(evt) {
+    evt.preventDefault();
+    const { email, password } = this.state;
+    const emailError = validateFields.validateEmail(email.value);
+    const passwordError = validateFields.validatePassword(password.value);
+    console.log(this.state);
+    if ([emailError, passwordError].every(e => e === false)) {
+
+      this.setState({allFieldsValidated: true });
+      this.showAllFieldsValidated();
+      try{
+        const response = await axios.post(this.state.api + "login", {email: this.state.email.value, password: this.state.password.value});
+        this.setState({userToken: response.data});
+        const users = await axios.get(this.state.api);
+        const user = users.data.users.find(x => x.email === this.state.email.value);
+        localStorage.setItem('userToken', this.state.userToken);
+        localStorage.setItem('userId', user._id);
+        this.setState({error: false, redirect: true});
     } catch(err) {
-        this.setState({error: true});
+        this.setState({error: true, loginError: true});
+    }
+
+    } else {
+      this.setState(state => ({
+        email: {
+          ...state.email,
+          validateOnChange: true,
+          error: emailError
+        },
+        password: {
+          ...state.password,
+          validateOnChange: true,
+          error: passwordError
+        },
+        loginError: true
+      }));
     }
   }
+
+  showAllFieldsValidated() {
+    setTimeout(() => {
+      this.setState({ allFieldsValidated: false });
+    }, 1500);
+  }
+
   render() {
-    return (
+    const { email, password, allFieldsValidated, redirect, loginError } = this.state;
+    if(redirect && this.state.userToken) {
+      return <Redirect to="home" />
+    }else return (
       <div className="base-container content_custom">
         <div className="box">
         <div className="header header_new">Login</div>
-     
+        
         <div className="content">
           <div className="image">
             <img src={loginImg} alt="login_image" className="img"></img>
           </div>
         </div>
-        <form>
+        <Form className="content_custom" onSubmit={evt => this.handleSubmit(evt)}>
           <div className="email field_new">
-        <Form.Group controlId="email" >
+          <Form.Group controlId="email">
             <Form.Label>Email address</Form.Label>
-            <Form.Control className="field" type="email" placeholder="Enter email" required onChange={this.emailChange}/>
+            <Form.Control className={classnames(
+                    'field',
+                    'form-control',
+                    { 'is-valid': email.error === false },
+                    { 'is-invalid': email.error }
+                  )} type="email" placeholder="Enter email" onChange={evt =>
+                    this.handleChange(validateFields.validateEmail, evt)
+                  } name="email"/>
             <Form.Text className="text-muted">
+            <Form.Control.Feedback type="invalid">Email is required field</Form.Control.Feedback>
         </Form.Text>
     </Form.Group>
-    </div>
-      <div className="password field_new">
+
     <Form.Group controlId="formBasicPassword">
         <Form.Label>Password</Form.Label>
-        <Form.Control className="field" type="password" placeholder="Password" required onChange={this.passwordChange}/>
+        <Form.Control type="password" name="password" placeholder="Password" className={classnames(
+                    'field',
+                    'form-control',
+                    { 'is-valid': password.error === false },
+                    { 'is-invalid': password.error }
+                  )}
+                  onChange={evt =>
+                    this.handleChange(validateFields.validatePassword, evt)
+                  }
+                  onBlur={evt =>
+                    this.handleBlur(validateFields.validatePassword, evt)
+                  } />
     </Form.Group>
     </div>
-    <span hidden={this.state.loginError != true}>Username or password incorrect</span>
     
-    </form>
+    
         <div className="footer">
-          <Button type="button" className="btn" onClick={this.submit} href={this.state.route}>
+          <Button variant="primary" type="submit">
             Login
           </Button>
-        </div>        
+        </div>
+        </Form>        
         </div>
         <a href="/register" className="not-reg">No account? Register here!</a>
-
+        
         <Alert variant="success" show={!this.state.error} transition={!this.state.error}>
-  <Alert.Heading>You successfully logged in</Alert.Heading>
-  
-</Alert>
+          <Alert.Heading>You successfully logged in</Alert.Heading>
+        </Alert>
+        <Alert variant="warning" show={this.state.loginError} transition={!this.state.error}>
+          <Alert.Heading>Email or password incorrect!</Alert.Heading>
+        </Alert>
+
       </div>
     );
   }
 }
-export default Login ;

@@ -1,19 +1,20 @@
 const Question = require('../models/Question');
+const User = require('../models/User');
 
-const get = async (req, res, next) => {
-  try {
-    const question = await Question.findById(req.params.id).populate('postedBy');
-
-    res.json(question);
-  } catch (err) {
-    next(err);
-  }
-};
+// const get = async (req, res, next) => {
+//   try {
+//     console.log('to je to11');
+//     const question = await Question.findById(req.params.id).populate('postedBy');
+//     res.json(question);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 
 const listbyUser = async (req, res, next) => {
   try {
-    console.log('uslo', req.query.id);
-    const questions = await Question.find({ postedBy: req.query.userId });
+    console.log('to je to');
+    const questions = await Question.find({ postedBy: req.params.id }).populate('postedBy').populate('answers');
     res.json({ questions });
   } catch (err) {
     next(err);
@@ -22,8 +23,14 @@ const listbyUser = async (req, res, next) => {
 
 const list = async (req, res, next) => {
   try {
-    const questions = await Question.find().populate('postedBy');
-    res.json({ questions });
+    console.log('req.query', req.query);
+    const questions = await Question.find().populate('answers').populate('postedBy');
+    if (req.query.sortBy === 'upvotes') {
+      const sortedQuestions = await Question.find().sort({ upvotes: -1 });
+      res.json({ sortedQuestions });
+    } else {
+      res.json({ questions });
+    }
   } catch (err) {
     next(err);
   }
@@ -32,9 +39,13 @@ const list = async (req, res, next) => {
 const create = async (req, res, next) => {
   try {
     const newQuestion = new Question(req.body);
-    await newQuestion.save();
-
-    res.json({ question: newQuestion });
+    await newQuestion.save().then((result) => {
+      User.findOne({ _id: result.postedBy }, (error, user) => {
+        user.questions.push(newQuestion);
+        user.save();
+        res.json({ question: newQuestion });
+      });
+    });
   } catch (err) {
     next(err);
   }
@@ -65,7 +76,7 @@ const update = async (req, res, next) => {
 };
 
 module.exports = {
-  get,
+  // get,
   list,
   create,
   remove,

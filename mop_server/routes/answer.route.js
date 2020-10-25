@@ -6,7 +6,7 @@ const controller = require('../controllers/answer.controller');
 
 router.get('/status', (req, res) => res.send('OK'));
 
-router.route('/').get(controller.list);
+router.route('/?').get(controller.list);
 router.route('/:id').get(controller.listByQuestion);
 router.route('/').post(controller.create);
 

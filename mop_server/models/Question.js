@@ -13,12 +13,12 @@ const questionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  answers: {
+  answers: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Question',
-  },
+    ref: 'Answer',
+  }],
 
-  upvotes: Number,
+  upvotes: 0,
 });
 
 module.exports = mongoose.model('Question', questionSchema);

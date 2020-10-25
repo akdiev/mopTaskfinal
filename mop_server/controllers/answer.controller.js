@@ -1,10 +1,10 @@
 /* eslint-disable linebreak-style */
 const Answer = require('../models/Answer');
+const Question = require('../models/Question');
 
 const get = async (req, res, next) => {
   try {
     const answer = await Answer.findById(req.params.id).populate('onQuestion');
-
     res.json(answer);
   } catch (err) {
     next(err);
@@ -13,7 +13,6 @@ const get = async (req, res, next) => {
 
 const listByQuestion = async (req, res, next) => {
   try {
-    console.log('uslo', req.query.id);
     const answers = await Answer.find({ onQuestion: req.query.id });
     res.json({ answers });
   } catch (err) {
@@ -31,9 +30,15 @@ const list = async (req, res, next) => {
 };
 
 const create = async (req, res, next) => {
+  console.log(req.body);
   try {
     const newAnswer = new Answer(req.body);
-    await newAnswer.save();
+    await newAnswer.save().then((result) => {
+      Question.findOne({ _id: result.onQuestion }, (error, question) => {
+        question.answers.push(newAnswer);
+        question.save();
+      });
+    });
 
     res.json({ answer: newAnswer });
   } catch (err) {

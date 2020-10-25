@@ -8,7 +8,7 @@ const User = require('../models/User');
 
 const get = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).populate('questions');
 
     res.json(user);
   } catch (err) {
@@ -27,6 +27,7 @@ const list = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
+    console.log(req.body);
     const emailExists = await User.findOne({ email: req.body.email });
     if (emailExists) return res.status(400).send('Email already exists!');
 
@@ -54,6 +55,7 @@ const remove = async (req, res, next) => {
 };
 
 const update = async (req, res, next) => {
+  console.log('req', req);
   try {
     const user = await User.findByIdAndUpdate(
       { _id: req.params.id },
@@ -68,6 +70,7 @@ const update = async (req, res, next) => {
 
 const login = async (req, res) => {
   try {
+    console.log('login', req.body);
     const user = await User.findOne({ email: req.body.email });
     if (!user) return res.status(400).send('Email or password incorrect!');
 
