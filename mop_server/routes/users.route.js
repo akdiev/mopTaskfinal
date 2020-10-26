@@ -7,6 +7,7 @@ const controller = require('../controllers/user.controller');
 router.get('/status', (req, res) => res.send('OK'));
 
 router.route('/').get(controller.list);
+// router.route('/?').get(controller.listUserWithMostAnswers);
 router.route('/login').post(controller.login);
 router.route('/').post(controller.create);
 

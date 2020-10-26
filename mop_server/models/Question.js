@@ -18,7 +18,10 @@ const questionSchema = new mongoose.Schema({
     ref: 'Answer',
   }],
 
-  upvotes: 0,
+  upvotes: {
+    type: Number,
+    default: 0,
+  },
 });
 
 module.exports = mongoose.model('Question', questionSchema);

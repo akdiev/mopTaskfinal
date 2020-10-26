@@ -12,10 +12,10 @@ const answerSchema = new mongoose.Schema({
     default: Date.now(),
   },
 
-  onQuestion: [{
+  onQuestion: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Question',
-  }],
+  },
 });
 
 module.exports = mongoose.model('Answer', answerSchema);

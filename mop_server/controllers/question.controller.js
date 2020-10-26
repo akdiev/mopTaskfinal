@@ -1,19 +1,17 @@
 const Question = require('../models/Question');
 const User = require('../models/User');
 
-// const get = async (req, res, next) => {
-//   try {
-//     console.log('to je to11');
-//     const question = await Question.findById(req.params.id).populate('postedBy');
-//     res.json(question);
-//   } catch (err) {
-//     next(err);
-//   }
-// };
+const get = async (req, res, next) => {
+  try {
+    const question = await Question.findById(req.params.id).populate('postedBy');
+    res.json(question);
+  } catch (err) {
+    next(err);
+  }
+};
 
 const listbyUser = async (req, res, next) => {
   try {
-    console.log('to je to');
     const questions = await Question.find({ postedBy: req.params.id }).populate('postedBy').populate('answers');
     res.json({ questions });
   } catch (err) {
@@ -23,7 +21,6 @@ const listbyUser = async (req, res, next) => {
 
 const list = async (req, res, next) => {
   try {
-    console.log('req.query', req.query);
     const questions = await Question.find().populate('answers').populate('postedBy');
     if (req.query.sortBy === 'upvotes') {
       const sortedQuestions = await Question.find().sort({ upvotes: -1 }).populate('answers').populate('postedBy');
@@ -64,6 +61,7 @@ const remove = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
+    console.log(req.body);
     const question = await Question.findByIdAndUpdate(
       { _id: req.params.id },
       req.body,

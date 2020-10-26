@@ -22,15 +22,20 @@ const listByQuestion = async (req, res, next) => {
 
 const list = async (req, res, next) => {
   try {
-    const answers = await Answer.find().populate('onQuestion');
-    res.json({ answers });
+    console.log('da li si usao', req.query);
+    if (req.query.getByUser) {
+      const answers = await Answer.find({ author: req.query.getByUser });
+      res.send(answers);
+    } else {
+      const answers = await Answer.find().populate('onQuestion');
+      res.json({ answers });
+    }
   } catch (err) {
     next(err);
   }
 };
 
 const create = async (req, res, next) => {
-  console.log(req.body);
   try {
     const newAnswer = new Answer(req.body);
     await newAnswer.save().then((result) => {
@@ -50,7 +55,6 @@ const remove = async (req, res, next) => {
   try {
     const answer = await Answer.findById(req.params.id);
     await answer.remove();
-
     res.send('Answer deleted!');
   } catch (err) {
     next(err);

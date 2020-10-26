@@ -3,5 +3,16 @@
   right: 0;
   clear: right;
 }
-.input-group-text {
+.list-group-item {
+  display: inline-flex;
+}
+.input-group {
+  display: contents;
+}
+.mb-3,
+.my-3 {
+  margin-bottom: 0 !important;
+}
+.card-div {
+  display: flex;
 }

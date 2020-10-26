@@ -5,3 +5,13 @@
 h1 {
   color: white;
 }
+.card-title {
+  font-size: 30px;
+  align-items: center;
+}
+.card {
+  width: fit-content;
+}
+.hot-title {
+  text-align: center;
+}
